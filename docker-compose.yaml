@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  loki:
+    image: grafana/loki:2.9.6
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+    # Loki ships with a default config at /etc/loki/local-config.yaml
+    # If you have a custom config, mount it here:
+    # - ./loki-config.yaml:/etc/loki/local-config.yaml:ro
+
+  grafana:
+    image: grafana/grafana:10.4.1
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+  promtail:
+    image: grafana/promtail:2.9.6
+    command: -config.file=/etc/promtail/promtail.yaml
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/promtail.yaml:ro
+      - ./logs:/app/logs:ro
+    depends_on:
+      - loki
+
+volumes:
+  grafana-storage:
+  loki-data:
